@@ -1,0 +1,113 @@
+
+
+https://www.ncdc.noaa.gov/
+
+
+
+Stations codes and names file [3138627798433stn.txt]:
+
+USAF-WBAN_ID STATION NAME                   COUNTRY                                            STATE 			      LATITUDE LONGITUDE ELEVATION
+------------ ------------------------------ -------------------------------------------------- ------------------------------ -------- --------- ---------
+155300 99999 VELIKO TARNOVO                 BULGARIA                                                                           +43.083  +025.650   +0218.0
+155350 99999 ROUSSE/RUSE                    BULGARIA                                                                           +43.850  +025.950   +0045.0
+155520 99999 VARNA                          BULGARIA                                                                           +43.232  +027.825   +0070.1
+156140 99999 SOFIA                          BULGARIA                                                                           +42.695  +023.406   +0531.0
+
+
+=====================================================
+
+Main data file [3138627798433dat.txt]:
+
+  USAF  WBAN YR--MODAHRMN DIR SPD GUS CLG SKC L M H  VSB MW MW MW MW AW AW AW AW W TEMP DEWP    SLP   ALT    STP MAX MIN PCP01 PCP06 PCP24 PCPXX SD
+155300 99999 193607010600 ***   0 *** 722 SCT 5 0 * 12.5 ** ** ** ** ** ** ** ** 1   70 **** 1016.8 ***** ****** *** *** ***** ***** ***** ***** ** 
+155300 99999 193607011800 ***   0 *** 722 SCT 0 4 * 12.5 ** ** ** ** ** ** ** ** 0   73 **** 1015.7 ***** ****** *** *** ***** ***** ***** ***** ** 
+155300 99999 193607020600 ***  43 *** 722 CLR 0 0 * 31.2 ** ** ** ** ** ** ** ** 2   70 **** 1018.3 ***** ****** *** *** ***** ***** ***** ***** ** 
+155300 99999 193607021800 200   2 *** 722 SCT 0 6 * 31.2 ** ** ** ** ** ** ** ** 0   75 **** 1016.4 ***** ****** *** *** ***** ***** ***** ***** ** 
+155300 99999 193607030600 070   2 *** 722 CLR 0 0 * 31.2 ** ** ** ** ** ** ** ** 0   72 **** 1016.3 ***** ****** *** *** ***** ***** ***** ***** **
+...
+=====================================================
+
+
+Inventory file [3138627798433inv.txt]:
+
+155300 99999 VELIKO TARNOVO                 1936    0    0    0    0    0    0   48   45   47   28   46   36
+155300 99999 VELIKO TARNOVO                 1937   41   50   32   38   31   33   36   31   34   22   33   18
+...
+156140 99999 SOFIA                          2017 1732 1568 1736 1679 1735 1672 1735 1722 1678 1734 1679 1735
+156140 99999 SOFIA                          2018 1681 1564 1735 1664 1721 1677 1719 1717 1518 1687  723    0
+
+
+Total Surface Hourly Observations Available: 1219794
+Total Station-Years: 242
+=====================================================
+
+
+Surface Stations data legend -- description file [3505doc.txt]:
+
+                                                   06/26/2012
+
+                  SURFACE HOURLY ABBREVIATED FORMAT
+
+ONE HEADER RECORD FOLLOWED BY DATA RECORDS:
+
+COLUMN  DATA DESCRIPTION
+
+01-06   USAF = AIR FORCE CATALOG STATION NUMBER   
+08-12   WBAN = NCDC WBAN NUMBER
+14-25   YR--MODAHRMN = YEAR-MONTH-DAY-HOUR-MINUTE IN GREENWICH MEAN TIME (GMT)
+27-29   DIR = WIND DIRECTION IN COMPASS DEGREES, 990 = VARIABLE, REPORTED AS
+        '***' WHEN AIR IS CALM (SPD WILL THEN BE 000)
+31-37   SPD & GUS = WIND SPEED & GUST IN MILES PER HOUR  
+39-41   CLG = CLOUD CEILING--LOWEST OPAQUE LAYER
+        WITH 5/8 OR GREATER COVERAGE, IN HUNDREDS OF FEET,
+        722 = UNLIMITED 
+43-45   SKC = SKY COVER -- CLR-CLEAR, SCT-SCATTERED-1/8 TO 4/8,
+        BKN-BROKEN-5/8 TO 7/8, OVC-OVERCAST, 
+        OBS-OBSCURED, POB-PARTIAL OBSCURATION   
+47-47   L = LOW CLOUD TYPE, SEE BELOW
+49-49   M = MIDDLE CLOUD TYPE, SEE BELOW
+51-51   H = HIGH CLOUD TYPE, SEE BELOW  
+53-56   VSB = VISIBILITY IN STATUTE MILES TO NEAREST TENTH 
+        NOTE: FOR SOME STATIONS, VISIBILITY IS REPORTED ONLY UP TO A
+        MAXIMUM OF 7 OR 10 MILES IN METAR OBSERVATIONS, BUT TO HIGHER
+        VALUES IN SYNOPTIC OBSERVATIONS, WHICH CAUSES THE VALUES TO 
+        FLUCTUATE FROM ONE DATA RECORD TO THE NEXT.  ALSO, VALUES
+        ORIGINALLY REPORTED AS '10' MAY APPEAR AS '10.1' DUE TO DATA
+        BEING ARCHIVED IN METRIC UNITS AND CONVERTED BACK TO ENGLISH.
+58-68   MW MW MW MW = MANUALLY OBSERVED PRESENT WEATHER--LISTED BELOW IN PRESENT WEATHER TABLE
+70-80   AW AW AW AW = AUTO-OBSERVED PRESENT WEATHER--LISTED BELOW IN PRESENT WEATHER TABLE
+82-82   W = PAST WEATHER INDICATOR, SEE BELOW
+84-92   TEMP & DEWP = TEMPERATURE & DEW POINT IN FAHRENHEIT 
+94-99   SLP = SEA LEVEL PRESSURE IN MILLIBARS TO NEAREST TENTH 
+...
+
+
+NOTES:  
+
+- *'s IN FIELD INDICATES ELEMENT NOT REPORTED.
+
+- SOME VALUES WERE CONVERTED FROM METRIC TO ENGLISH UNITS.  THIS WILL
+OCCASIONALLY RESULT IN MINOR DIFFERENCES VS ORIGINAL DATA DUE TO ROUNDING.
+
+- COLUMN POSITION REFERS TO ASCII TEXT DATA.  
+...
+                    PRESENT WEATHER CODE TABLE 
+
+The code that denotes a specific type of weather observed.
+-----------------------------------------------------------------
+00-49  No precipitation at the station at the time of observation
+-----------------------------------------------------------------
+...
+                             HIGH CLOUD TYPE 
+
+0: No High Clouds
+1: Cirrus fibratus, sometimes uncinus, not progressively invading
+the sky
+2: Cirrus spissatus, in patches or entangled sheaves, which usually
+do not increase and sometimes seem to be the remains of the upper
+part  of a Cumulonimbus; or Cirrus castellanus or floccus
+3: Cirrus spissatus cumulonimbogenitus
+4: Cirrus unicinus or fibratus, or both, progressively invading the
+sky; they generally thicken as a whole
+...
+==================================================================
