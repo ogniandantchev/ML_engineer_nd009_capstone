@@ -54,9 +54,9 @@ c. Feature engineering and data transformation.
 
 d. Splitting the data into training, validation, and testing sets.
 
-e. Defining and training a Feed-Forward Neural Network.
+e. Defining and training a Gated Recurrent Unit (GRU) RNN Model.
 
-f. Defining and training a Recurrent Neural Network.
+f. Defining and training a Dilated Causal CNN Model.
 
 g. Evaluating and comparing model performances.
 
