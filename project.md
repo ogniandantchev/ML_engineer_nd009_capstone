@@ -46,21 +46,19 @@
 ## 7. Project Design
 
 
-a. Data loading and exploration.
+a. Data import and exploration;  Data cleaning and pre-processing;  Feature engineering and data transformation;  Save the clean data in compact new format for use in other notebooks and upload to AWS bucket. 
 
-b. Data cleaning and pre-processing.
+b. Split the data into training, validation, and testing sets;  Define and train a Gated Recurrent Unit (GRU) RNN Model.
 
-c. Feature engineering and data transformation.
+c. Split the data into training, validation, and testing sets; Define and train a Dilated Causal CNN Model.
 
-d. Splitting the data into training, validation, and testing sets.
+d. Split the data into training, validation, and testing sets; Define and train a model from  Gluon Time Series (GluonTS) toolkit by Amazon Science
 
-e. Defining and training a Gated Recurrent Unit (GRU) RNN Model.
+e. Evaluate and compare the models.
 
-f. Defining and training a Dilated Causal CNN Model.
+f. Deploy one of the models to AWS
 
-g. Evaluating and comparing model performances.
 
-h. Presenting predictions for offer sending.
 
 
 ## 8. References
