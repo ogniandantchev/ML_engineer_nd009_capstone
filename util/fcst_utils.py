@@ -77,24 +77,23 @@ def get_or_create_iam_role( role_name ):
         )
         role_arn = create_role_response["Role"]["Arn"]
         print("Created", role_arn)
+        
+        print("Attaching policies...")
+        iam.attach_role_policy(
+            RoleName = role_name,
+            PolicyArn = "arn:aws:iam::aws:policy/AmazonForecastFullAccess"
+        )
+
+        iam.attach_role_policy(
+            RoleName=role_name,
+            PolicyArn='arn:aws:iam::aws:policy/AmazonS3FullAccess',
+        )
+
+        print("Waiting for a minute to allow IAM role policy attachment to propagate")
+        time.sleep(60)
     except iam.exceptions.EntityAlreadyExistsException:
         print("The role " + role_name + " exists, ignore to create it")
         role_arn = boto3.resource('iam').Role(role_name).arn
-
-    print("Attaching policies")
-
-    iam.attach_role_policy(
-        RoleName = role_name,
-        PolicyArn = "arn:aws:iam::aws:policy/AmazonForecastFullAccess"
-    )
-
-    iam.attach_role_policy(
-        RoleName=role_name,
-        PolicyArn='arn:aws:iam::aws:policy/AmazonS3FullAccess',
-    )
-
-    print("Waiting for a minute to allow IAM role policy attachment to propagate")
-    time.sleep(60)
 
     print("Done.")
     return role_arn
@@ -107,6 +106,32 @@ def delete_iam_role( role_name ):
     iam.delete_role(RoleName=role_name)
 
 
+def create_bucket(bucket_name, region=None):
+    """Create an S3 bucket in a specified region
+    If a region is not specified, the bucket is created in the S3 default
+    region (us-east-1).
+    :param bucket_name: Bucket to create
+    :param region: String region to create bucket in, e.g., 'us-west-2'
+    :return: True if bucket created, else False
+    """
+    try:
+        if region is None:
+            s3_client = boto3.client('s3')
+            s3_client.create_bucket(Bucket=bucket_name)
+        elif region == "us-east-1":
+            s3_client = boto3.client('s3')
+            s3_client.create_bucket(Bucket=bucket_name)
+        else:
+            s3_client = boto3.client('s3', region_name=region)
+            location = {'LocationConstraint': region}
+            s3_client.create_bucket(Bucket=bucket_name,
+                                    CreateBucketConfiguration=location)
+    except Exception as e:
+        print(e)
+        return False
+    return True
+
+    
 def plot_forecasts(fcsts, exact, freq = '1H', forecastHorizon=24, time_back = 80):
     p10 = pd.DataFrame(fcsts['Forecast']['Predictions']['p10'])
     p50 = pd.DataFrame(fcsts['Forecast']['Predictions']['p50'])
@@ -117,7 +142,7 @@ def plot_forecasts(fcsts, exact, freq = '1H', forecastHorizon=24, time_back = 80
     time_int = exact['timestamp'].apply(lambda x: pd.Timestamp(x))
     plt.plot(time_int[-time_back:],exact['target'].values[-time_back:], color = 'r')
     plt.plot(pred_int, p50['Value'].values, color = 'k')
-    plt.fill_between(p50['Timestamp'].values, 
+    plt.fill_between(pred_int, 
                      p10['Value'].values,
                      p90['Value'].values,
                      color='b', alpha=0.3);
@@ -137,4 +162,3 @@ def extract_gz( src, dst ):
             fd_dst.write(data)
 
     print("Done.")
-
