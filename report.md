@@ -38,7 +38,7 @@ There are many classical time series forecasting methods, based on autoregressiv
 
 Models based on Neural Networks are able to handle more complex nonlinear patterns.  They have less restrictions and make less assumptions; have high predictive power and can be easily automated.  Their cons -- they require more data; can be more difficult to interpret, and, it is more difficult to derive confidence intervals for the forecast.   
 
-In this project, three different Neural Networks were implemented for time series forecasting.  A Recurrent Neural Network (RNN) with Gated Recurrent Unit (GRU) from the Keras API, as described in the TensorFlow Tutorials in [ [1](#6-references) ].  Second is a Dilated Causal CNN, I implemented earlier in [ [2](#6-references) ] and as originally described in [ [6](#6-references) ] by Aaron van den Oord, Sander Dieleman et al.  Both 1st and 2nd models use Keras and TensorFlow 2.5.  The third model implemented is based on the DeepAR+ algorithm of Amazon Forecast by AWS.
+In this project, three different Neural Networks were implemented for time series forecasting.  A Recurrent Neural Network (RNN) with Gated Recurrent Unit (GRU) from the Keras API, as described in the TensorFlow Tutorials in [ [1](#6-references) ].  Second is a Dilated Causal CNN, I implemented in the past in [ [2](#6-references) ] and as originally described in [ [6](#6-references) ] by Aaron van den Oord, Sander Dieleman et al.  Both 1st and 2nd models use Keras and TensorFlow 2.5.  The third model implemented is based on the DeepAR+ algorithm of Amazon Forecast by AWS.
 
 
 ### Problem Statement
@@ -51,9 +51,9 @@ The implementation was split into 5 smaller Jupyter Notebooks:
 
 02. Split the data into training, validation, and testing sets;  Define and train a Gated Recurrent Unit (GRU) RNN Model.
 
-03. Split the data into training, validation, and testing sets; Define and train a Dilated Causal CNN Model. (model and model2 are the same, but use different way of building with Keras -- as an experiment)
+03. Split the data into training, validation, and testing sets; Define and train a Dilated Causal CNN Model. (model and model2 are the same, but use different way of building with Keras functional API -- as an experiment).
 
-04. Connect AWS API session, create IAM role for Amazon Forecast, create S3 bucket; upload the dataset to AWS S3 bucket;  Define and train a model from AWS Amazon Forecast -- Amazon DeepAR+ algorithm.  I diviated from the original plan to use the open source Gluon Time Series (GluonTS) toolkit by AWS Labs, in favor of the Amazon DeepAR+ algorithm, as it is state-of-the-art and used by amazon.com; Deployed the later model to AWS
+04. Connect AWS API session, create IAM role for Amazon Forecast, create S3 bucket; upload the dataset to AWS S3 bucket;  Define and train a model from AWS Amazon Forecast -- Amazon DeepAR+ algorithm.  I diviated from the original plan to use the open source Gluon Time Series (GluonTS) toolkit by AWS Labs, in favor of the Amazon DeepAR+ algorithm, as it is state-of-the-art and used by amazon.com; Deployed the later model to AWS.
 
 05. Discussion, TODO, Cleanup of AWS resources and References.  Evaluate and compare the models, to the extend possible.
 
@@ -90,14 +90,18 @@ The re-sampled data will be used to create "future" period by shifting the targe
 
 ### Algorithms and APIs
 
-![RNN](https://stanford.edu/~shervine/teaching/cs-230/illustrations/architecture-rnn-ltr.png?9ea4417fc145b9346a3e288801dbdfdc)
+Recurrent neural networks (RNN) are a class of neural networks that is powerful for modeling sequence data such as time series or natural language.  The 1st model will be based RNN with Gated Recurrent Unit (GRU).  The 2nd one, I used in the past in [ [2](#6-references) ], will be based on Dilated Causal CNN, often used for audio processing [ [6](#6-references) ].
+
+Here's a typical diagram of RNNs (from Stanford CS 230):
+
+![RNN](https://stanford.edu/~shervine/teaching/cs-230/illustrations/architecture-rnn-ltr.png)
+
+Here's a diagram of a Dilated Causal CNN, from the original WaveNet article [ [6](#6-references) ]:
+
+![Dilated Causal CNN](Dilated_Causal_CNN.png)
 
 
-![Dilated Causal CNN, see 6](Dilated_Causal_CNN.png)
 
-
-
-An attempt to predict the temperature for a given future period will be presented.  It will be based on data series for the temperature and the atmospheric pressure, for the target and three other cities in proximity.
 
 
 ## 3. Methodology
@@ -105,11 +109,15 @@ An attempt to predict the temperature for a given future period will be presente
 
 ### Data Preprocessing
 
-Weather data for the period 1931-2018 will be used for four cities in Bulgaria -- Ruse, Sofia, Varna and Veliko Tarnovo.  After struggling with the format of some of the local sources, I found that the National Centers for Environmental Information of the National Oceanic and Atmospheric Administration https://www.ncei.noaa.gov/ provide an access to a global source of climatic data.  It was also used in [ [1](#6-references)], and one can pick almost any location in the world.  
+Weather data for the period 1936-2018 will be used for four cities in Bulgaria -- Ruse, Sofia, Varna and Veliko Tarnovo.  After struggling with the format of some of the local sources, I found that the National Centers for Environmental Information of the National Oceanic and Atmospheric Administration https://www.ncei.noaa.gov/ provide an access to a global source of climatic data.  It was also used in [ [1](#6-references)], and one can pick almost any location in the world.  
 
 ![Bulgaria Map](BG_c1.png)
 
-Since weather data is most 
+Since weather data is most diligently collected at airports, cities are encoded with their USAF codes.  A function to convert these codes to names was prepared, as well as one that converts deg F to deg C.  
+
+![Sofia Temperature, 1973 to 2018](raw_T_data.png)
+
+There are some gaps in the data, so I removed some period, and at the end I only use 1973 to 2018 -- i.e. 45 years of data vs the original 82 years, but still more than enough.  Removed 2 of the cities with bigger gaps, so only Sofia and Varna time series left in the clean dataset.  After that, the series were re-sampled, so an hourly frequency can be used for the entire period (data was colleted only 2 times a day in the 1930ies, then 3 times, then 6, and currenlty more than 24 times).  
 
 Here's the sequence to acquire, clean and reshape the data:
 * generate the raw data set at https://www.ncdc.noaa.gov/ (https://www7.ncdc.noaa.gov/CDO/cdoselect.cmd -- the old data request form)
@@ -127,6 +135,8 @@ https://github.com/ogniandantchev/ML_engineer_nd009_capstone
 
 ### Implementation
 
+The Keras API and TensorFlow 2.5 was used to create the first 2 models, notebooks 02 and 03.
+
 #### Gated Recurrent Unit (GRU) RNN Model Implementation
 
 ```
@@ -138,8 +148,10 @@ model.add(Dense(num_y_signals, activation="tanh"))
 ```
 
 Loss function calculates MSE, but after ignoring some "warmup" part of the sequences:
+
 `warmup_steps = 50`
 
+Later on these are visualized in gray in the Forecast plots.
 
 ```
 model.summary()
@@ -187,7 +199,7 @@ model2 = Sequential([
 model2.compile(Adam(), loss='mean_absolute_error')
 ```
 
-Using Standard MSE as loss here.
+Using Standard MSE as loss here `loss='mean_absolute_error'` .
 
 ```
 
@@ -229,16 +241,305 @@ Non-trainable params: 0
 <img src="https://amazon-forecast-samples.s3-us-west-2.amazonaws.com/common/images/forecast_overview_steps.png" width="98%">
 
 
+Similarly to the scheme above, most of the work is in preparing the dataset (one time series here) in the Amazon Forecast specific format, copy to the newly created S3 bucket and import to AWS Forecast.  Here's the import result at the end:
+
+```
+forecast.describe_dataset_import_job(DatasetImportJobArn=ts_dataset_import_job_arn)
 
 
+{'DatasetImportJobName': 'sof_temperature_forecast_1',
+ 'DatasetImportJobArn': 'arn:aws:forecast:eu-central-1:574930355514:dataset-import-job/sof_temperature_forecast_1/sof_temperature_forecast_1',
+ 'DatasetArn': 'arn:aws:forecast:eu-central-1:574930355514:dataset/sof_temperature_forecast_1',
+ 'TimestampFormat': 'yyyy-MM-dd hh:mm:ss',
+ 'UseGeolocationForTimeZone': False,
+ 'DataSource': {'S3Config': {'Path': 's3://forecast-test-0/t1.csv',
+   'RoleArn': 'arn:aws:iam::574930355514:role/ForecastNotebookRole-Basic'}},
+ 'FieldStatistics': {'item_id': {'Count': 401784,
+   'CountDistinct': 1,
+   'CountNull': 0,
+   'CountLong': 401784,
+   'CountDistinctLong': 1,
+   'CountNullLong': 0},
+  'target_value': {'Count': 401784,
+   'CountDistinct': 12756,
+   'CountNull': 0,
+   'CountNan': 0,
+   'Min': '-25.0',
+   'Max': '41.11',
+   'Avg': 10.1715268852146,
+   'Stddev': 9.428677566143127,
+   'CountLong': 401784,
+   'CountDistinctLong': 12756,
+   'CountNullLong': 0,
+   'CountNanLong': 0},
+  'timestamp': {'Count': 401784,
+   'CountDistinct': 401784,
+   'CountNull': 0,
+   'Min': '1973-01-01T00:00:00Z',
+   'Max': '2018-11-01T23:00:00Z',
+   'CountLong': 401784,
+   'CountDistinctLong': 401784,
+   'CountNullLong': 0}},
+ 'DataSize': 0.012740140780806541,
+ 'Status': 'ACTIVE',
+ 'CreationTime': datetime.datetime(2021, 7, 29, 15, 58, 11, 748000, tzinfo=tzlocal()),
+ 'LastModificationTime': datetime.datetime(2021, 7, 29, 16, 6, 20, 94000, tzinfo=tzlocal()),
+ 'ResponseMetadata': {'RequestId': 'd73cb6b2-1910-4a59-b0ee-27c2667f66e7',
+  'HTTPStatusCode': 200,
+  'HTTPHeaders': {'content-type': 'application/x-amz-json-1.1',
+   'date': 'Thu, 29 Jul 2021 13:06:35 GMT',
+   'x-amzn-requestid': 'd73cb6b2-1910-4a59-b0ee-27c2667f66e7',
+   'content-length': '1182',
+   'connection': 'keep-alive'},
+  'RetryAttempts': 0}}
+```
+
+Then creating the model:
+```
+create_predictor_response = \
+    forecast.create_predictor(PredictorName=predictor_name_deep_ar,
+                              AlgorithmArn=algorithm_arn_deep_ar_plus,
+                              ForecastHorizon=FORECAST_LENGTH,
+                              PerformAutoML=False,
+                              PerformHPO=False,
+                              InputDataConfig= {"DatasetGroupArn": dataset_group_arn},
+                              FeaturizationConfig= {"ForecastFrequency": DATASET_FREQUENCY}
+                             )
+```
+
+
+```
+forecast.describe_predictor(PredictorArn=predictor_arn_deep_ar)
+
+{'PredictorArn': 'arn:aws:forecast:eu-central-1:574930355514:predictor/sof_temperature_forecast_1_deep_ar_plus',
+ 'PredictorName': 'sof_temperature_forecast_1_deep_ar_plus',
+ 'AlgorithmArn': 'arn:aws:forecast:::algorithm/Deep_AR_Plus',
+ 'ForecastHorizon': 72,
+ 'ForecastTypes': ['0.1', '0.5', '0.9'],
+ 'PerformAutoML': False,
+ 'PerformHPO': False,
+ 'TrainingParameters': {'context_length': '144',
+  'epochs': '500',
+  'learning_rate': '1E-3',
+  'learning_rate_decay': '0.5',
+  'likelihood': 'student-t',
+  'max_learning_rate_decays': '0',
+  'num_averaged_models': '1',
+  'num_cells': '40',
+  'num_layers': '2',
+  'prediction_length': '72'},
+ 'EvaluationParameters': {'NumberOfBacktestWindows': 1,
+  'BackTestWindowOffset': 72},
+ 'InputDataConfig': {'DatasetGroupArn': 'arn:aws:forecast:eu-central-1:574930355514:dataset-group/sof_temperature_forecast_1'},
+ 'FeaturizationConfig': {'ForecastFrequency': 'H',
+  'Featurizations': [{'AttributeName': 'target_value',
+    'FeaturizationPipeline': [{'FeaturizationMethodName': 'filling',
+      'FeaturizationMethodParameters': {'aggregation': 'sum',
+       'backfill': 'zero',
+       'frontfill': 'none',
+       'middlefill': 'zero'}}]}]},
+ 'PredictorExecutionDetails': {'PredictorExecutions': [{'AlgorithmArn': 'arn:aws:forecast:::algorithm/Deep_AR_Plus',
+    'TestWindows': [{'TestWindowStart': datetime.datetime(2018, 10, 30, 2, 0, tzinfo=tzlocal()),
+      'TestWindowEnd': datetime.datetime(2018, 11, 2, 2, 0, tzinfo=tzlocal()),
+      'Status': 'ACTIVE'}]}]},
+ 'DatasetImportJobArns': ['arn:aws:forecast:eu-central-1:574930355514:dataset-import-job/sof_temperature_forecast_1/sof_temperature_forecast_1'],
+ 'AutoMLAlgorithmArns': ['arn:aws:forecast:::algorithm/Deep_AR_Plus'],
+ 'Status': 'ACTIVE',
+ 'CreationTime': datetime.datetime(2021, 7, 29, 16, 9, 7, 637000, tzinfo=tzlocal()),
+ 'LastModificationTime': datetime.datetime(2021, 7, 29, 18, 39, 4, 691000, tzinfo=tzlocal()),
+ 'ResponseMetadata': {'RequestId': 'c7dc6e9e-e288-4c08-8be5-b8e73d73df2e',
+  'HTTPStatusCode': 200,
+  'HTTPHeaders': {'content-type': 'application/x-amz-json-1.1',
+   'date': 'Thu, 29 Jul 2021 18:51:42 GMT',
+   'x-amzn-requestid': 'c7dc6e9e-e288-4c08-8be5-b8e73d73df2e',
+   'content-length': '1567',
+   'connection': 'keep-alive'},
+  'RetryAttempts': 0}}
+
+```
+
+
+Creating forecast
+
+```
+forecast.describe_forecast(ForecastArn=forecast_arn_deep_ar)
+
+{'ForecastArn': 'arn:aws:forecast:eu-central-1:574930355514:forecast/sof_temperature_forecast_1_deep_ar_plus',
+ 'ForecastName': 'sof_temperature_forecast_1_deep_ar_plus',
+ 'ForecastTypes': ['0.1', '0.5', '0.9'],
+ 'PredictorArn': 'arn:aws:forecast:eu-central-1:574930355514:predictor/sof_temperature_forecast_1_deep_ar_plus',
+ 'DatasetGroupArn': 'arn:aws:forecast:eu-central-1:574930355514:dataset-group/sof_temperature_forecast_1',
+ 'Status': 'ACTIVE',
+ 'CreationTime': datetime.datetime(2021, 7, 29, 21, 57, 48, 160000, tzinfo=tzlocal()),
+ 'LastModificationTime': datetime.datetime(2021, 7, 29, 22, 14, 22, 326000, tzinfo=tzlocal()),
+ 'ResponseMetadata': {'RequestId': '9b374fe8-d03e-462a-a382-a0f18533c4d8',
+  'HTTPStatusCode': 200,
+  'HTTPHeaders': {'content-type': 'application/x-amz-json-1.1',
+   'date': 'Thu, 29 Jul 2021 19:15:04 GMT',
+   'x-amzn-requestid': '9b374fe8-d03e-462a-a382-a0f18533c4d8',
+   'content-length': '505',
+   'connection': 'keep-alive'},
+  'RetryAttempts': 0}}
+```
 
 ## 4. Results
 
 ### Model Evaluation and Validation
 
-Recurrent neural networks (RNN) are a class of neural networks that is powerful for modeling sequence data such as time series or natural language.  The 1st model will be based RNN: Gated Recurrent Unit (GRU).  The 2nd one, I used in [ [2](#6-references) ] will be based on Dilated Causal CNN, often used for audio processing.
+The training results, times, and the forecast plots are as follows:
 
-One of the models will then be deployed on AWS.
+#### Recurrent Neural Network with GRU:
+
+```
+Epoch 1/20
+100/100 [==============================] - 61s 577ms/step - loss: 0.0154 - val_loss: 0.0113
+
+Epoch 00001: val_loss improved from inf to 0.01128, saving model to 02_checkpoint.keras
+Epoch 2/20
+100/100 [==============================] - 58s 582ms/step - loss: 0.0069 - val_loss: 0.0084
+
+Epoch 00002: val_loss improved from 0.01128 to 0.00839, saving model to 02_checkpoint.keras
+Epoch 3/20
+100/100 [==============================] - 60s 598ms/step - loss: 0.0061 - val_loss: 0.0046
+
+Epoch 00003: val_loss improved from 0.00839 to 0.00464, saving model to 02_checkpoint.keras
+Epoch 4/20
+100/100 [==============================] - 60s 597ms/step - loss: 0.0056 - val_loss: 0.0060
+
+Epoch 00004: val_loss did not improve from 0.00464
+
+Epoch 00004: ReduceLROnPlateau reducing learning rate to 0.00010000000474974513.
+Epoch 5/20
+100/100 [==============================] - 60s 598ms/step - loss: 0.0041 - val_loss: 0.0038
+
+Epoch 00005: val_loss improved from 0.00464 to 0.00380, saving model to 02_checkpoint.keras
+Epoch 6/20
+100/100 [==============================] - 60s 597ms/step - loss: 0.0039 - val_loss: 0.0039
+
+Epoch 00006: val_loss did not improve from 0.00380
+
+Epoch 00006: ReduceLROnPlateau reducing learning rate to 0.0001.
+Epoch 7/20
+100/100 [==============================] - 60s 596ms/step - loss: 0.0039 - val_loss: 0.0038
+
+Epoch 00007: val_loss did not improve from 0.00380
+Epoch 8/20
+100/100 [==============================] - 60s 596ms/step - loss: 0.0039 - val_loss: 0.0038
+
+Epoch 00008: val_loss improved from 0.00380 to 0.00378, saving model to 02_checkpoint.keras
+Epoch 9/20
+100/100 [==============================] - 60s 596ms/step - loss: 0.0038 - val_loss: 0.0037
+
+Epoch 00009: val_loss improved from 0.00378 to 0.00375, saving model to 02_checkpoint.keras
+Epoch 10/20
+100/100 [==============================] - 60s 597ms/step - loss: 0.0038 - val_loss: 0.0040
+
+Epoch 00010: val_loss did not improve from 0.00375
+Epoch 11/20
+100/100 [==============================] - 60s 597ms/step - loss: 0.0038 - val_loss: 0.0037
+
+Epoch 00011: val_loss improved from 0.00375 to 0.00374, saving model to 02_checkpoint.keras
+Epoch 12/20
+100/100 [==============================] - 60s 598ms/step - loss: 0.0038 - val_loss: 0.0037
+
+Epoch 00012: val_loss improved from 0.00374 to 0.00370, saving model to 02_checkpoint.keras
+Epoch 13/20
+100/100 [==============================] - 60s 598ms/step - loss: 0.0037 - val_loss: 0.0038
+
+Epoch 00013: val_loss did not improve from 0.00370
+Epoch 14/20
+100/100 [==============================] - 60s 599ms/step - loss: 0.0038 - val_loss: 0.0037
+
+Epoch 00014: val_loss did not improve from 0.00370
+Epoch 15/20
+100/100 [==============================] - 60s 598ms/step - loss: 0.0037 - val_loss: 0.0036
+
+Epoch 00015: val_loss improved from 0.00370 to 0.00363, saving model to 02_checkpoint.keras
+Epoch 16/20
+100/100 [==============================] - 60s 598ms/step - loss: 0.0037 - val_loss: 0.0038
+
+Epoch 00016: val_loss did not improve from 0.00363
+Epoch 17/20
+100/100 [==============================] - 60s 598ms/step - loss: 0.0037 - val_loss: 0.0037
+
+Epoch 00017: val_loss did not improve from 0.00363
+Epoch 18/20
+100/100 [==============================] - 60s 599ms/step - loss: 0.0037 - val_loss: 0.0038
+
+Epoch 00018: val_loss did not improve from 0.00363
+Epoch 00018: early stopping
+Wall time: 17min 54s
+```
+
+
+![Gated Recurrent Unit (GRU) RNN Model forecast](02_forecast_plot.png)
+
+
+#### Dilated Causal Convolutional Neural Network
+
+```
+Epoch 1/10
+100/100 [==============================] - 21s 184ms/step - loss: 0.0876 - val_loss: 0.0506
+Epoch 2/10
+100/100 [==============================] - 18s 178ms/step - loss: 0.0575 - val_loss: 0.0490
+Epoch 3/10
+100/100 [==============================] - 18s 178ms/step - loss: 0.0556 - val_loss: 0.0483
+Epoch 4/10
+100/100 [==============================] - 18s 178ms/step - loss: 0.0546 - val_loss: 0.0484
+Epoch 5/10
+100/100 [==============================] - 18s 177ms/step - loss: 0.0542 - val_loss: 0.0482
+Epoch 6/10
+100/100 [==============================] - 18s 178ms/step - loss: 0.0536 - val_loss: 0.0480
+Epoch 7/10
+100/100 [==============================] - 18s 178ms/step - loss: 0.0533 - val_loss: 0.0490
+Epoch 8/10
+100/100 [==============================] - 18s 178ms/step - loss: 0.0528 - val_loss: 0.0479
+Epoch 9/10
+100/100 [==============================] - 18s 178ms/step - loss: 0.0523 - val_loss: 0.0478
+Epoch 10/10
+100/100 [==============================] - 18s 179ms/step - loss: 0.0520 - val_loss: 0.0479
+Wall time: 3min 1s
+```
+
+![Dilated Causal CNN Model forecast](03_forecast_plot.png)
+
+see `describe_predictor` above.  here's the result of f`orecast.get_accuracy_metrics`:
+
+```
+{'PredictorEvaluationResults': [{'AlgorithmArn': 'arn:aws:forecast:::algorithm/Deep_AR_Plus',
+   'TestWindows': [{'EvaluationType': 'SUMMARY',
+     'Metrics': {'RMSE': 2.8056032983401455,
+      'WeightedQuantileLosses': [{'Quantile': 0.9,
+        'LossValue': 0.0640613829623758},
+       {'Quantile': 0.5, 'LossValue': 0.13991594321957088},
+       {'Quantile': 0.1, 'LossValue': 0.10678413658910633}],
+      'ErrorMetrics': [{'ForecastType': 'mean',
+        'WAPE': 0.14845030024660774,
+        'RMSE': 2.8056032983401455}]}},
+    {'TestWindowStart': datetime.datetime(2018, 10, 30, 2, 0, tzinfo=tzlocal()),
+     'TestWindowEnd': datetime.datetime(2018, 11, 2, 2, 0, tzinfo=tzlocal()),
+     'ItemCount': 1,
+     'EvaluationType': 'COMPUTED',
+     'Metrics': {'RMSE': 2.8056032983401455,
+      'WeightedQuantileLosses': [{'Quantile': 0.9,
+        'LossValue': 0.0640613829623758},
+       {'Quantile': 0.5, 'LossValue': 0.13991594321957088},
+       {'Quantile': 0.1, 'LossValue': 0.10678413658910633}],
+      'ErrorMetrics': [{'ForecastType': 'mean',
+        'WAPE': 0.14845030024660774,
+        'RMSE': 2.8056032983401455}]}}]}],
+ 'ResponseMetadata': {'RequestId': '970b42fa-e957-4d00-bf67-2d334101dcc6',
+  'HTTPStatusCode': 200,
+  'HTTPHeaders': {'content-type': 'application/x-amz-json-1.1',
+   'date': 'Thu, 29 Jul 2021 18:55:57 GMT',
+   'x-amzn-requestid': '970b42fa-e957-4d00-bf67-2d334101dcc6',
+   'content-length': '950',
+   'connection': 'keep-alive'},
+  'RetryAttempts': 0}}
+```
+
+![Amazon Forecast DeepAR+ forecast](04_forecast_plot.svg)
+
 
 ## 5. Conclusion
 
