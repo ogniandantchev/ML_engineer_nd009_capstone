@@ -45,7 +45,7 @@ ToC / Jupyter notebooks:
 
 + The DeepAR+ model of Amazon Forecast (notebook 04) has RMSE of 2.806, while the custom Dilated Causal CNN (notebook 03) has an MSE 0.0037 (or RMSE = MSE **2 = 0.061).  Of course it is not fare to compare a model based on just one time series, to the multivariate custom model.
 
-+ the total cost of training and deploying the model at AWS Amazon Forecast was EUR 0.78 (USD 0.91)
++ the total cost of training and deploying the model at AWS Amazon Forecast was EUR 0.78 (USD 0.91) using the free tier
 
 ---
 
