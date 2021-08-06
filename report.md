@@ -66,7 +66,7 @@ The implementation was split into 5 smaller Jupyter Notebooks:
 
 Common merics for Time Series Analysis are Mean Absolute Error (MAE), Mean Squared Error (MSE), Mean Absolute Percentage Error (MAPE),  Weighted Average Percentage Error (WAPE, also referred to as the MAD/Mean ratio.
 
-$MSE=\sum_{j=0}^{n} (y_i - \hat{y_i})$
+$MSE=\sum_{j=0}^{n} (y_i - \hat{y_i}) / n$
 
 Mean Squared Error (MSE) will be used as the loss-function that will be minimized and used as a metric. This measures how closely the model's output matches the true output signals.
 
@@ -545,15 +545,15 @@ see `describe_predictor` above.  here's the result of f`orecast.get_accuracy_met
 
 ### Discussion 
 
-An attempt was made to compare custom models -- Gated Recurrent Unit (GRU) RNN and the Dilated Causal CNN to Amazon's own Amazon DeepAR+ algorithm model.
+Two custommultivariatemodels were implemented: RNN with Gated Recurrent Unit (GRU)and a Dilated Causal CNN with Keras and TensorFlow.  The 3rdbased on Amazon Forecast DeepAR+ algorithm was implemented and deployed at AWS.  An attempt was made to compare custom models to Amazon’s own DeepAR+ model, but since they use different metrics, further work is required.
 
 + The main goal was to learn how implement and deploy DeepAR+ model for time series forecast to AWS Amazon Forecast. 
 
-+ The DeepAR+ model of Amazon Forecast (notebook 04) has RMSE of 2.806, while the custom Dilated Causal CNN (notebook 03) has an MSE 0.0037 (or $RMSE=\sqrt{MSE} = 0.061$).  Of course it is not fare to compare a model based on just one time series, to the multivariate custom model.
++ The DeepAR+ model of Amazon Forecast (notebook 04) has RMSE of 2.806, while the custom Dilated Causal CNN (notebook 03) has an MSE 0.0037 (or $RMSE=\sqrt{MSE} = 0.061$).  Of course it is not fair to compare a model based on just one time series, to the multivariate custom model.
 
-+ the total cost of training and deploying the model at AWS Amazon Forecast was EUR 0.78 (USD 0.91)
++ the total cost of training and deploying the model at AWS Amazon Forecast was EUR 0.78 (USD 0.91) with the AWS free tier.
 
-
+The state-of-the-art DeepAR+ model performs well, even though it was the only model using just one time series.  The custom models are both multivariate, using temperatureand pressuredata for 2 cities + some engineered features to helpmake senseoftime of day, and day of the year.  All 3models capture well the dailyand seasonalvariationsin temperature.
 
 ### Future improvements and TODO
 
